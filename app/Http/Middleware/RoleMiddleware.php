@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use Closure;
@@ -15,10 +14,11 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        $userRole = Auth::user()->role;
+        $user = Auth::user();
+        $userRole = $user->role;
 
         if (!in_array($userRole, $roles)) {
-            abort(403, 'You do not have permission to access this resource.');
+            abort(403, 'You do not have permission to access this page.');
         }
 
         return $next($request);
