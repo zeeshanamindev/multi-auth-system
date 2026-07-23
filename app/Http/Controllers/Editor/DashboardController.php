@@ -10,15 +10,14 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        if (!Auth::check()) {
+            redirect()->route('login')->send();
+            exit();
+        }
         
-        $this->middleware(function ($request, $next) {
-            $role = Auth::user()->role;
-            if (!in_array($role, ['admin', 'manager', 'editor'])) {
-                abort(403, 'Access denied. Editor only.');
-            }
-            return $next($request);
-        });
+        if (!in_array(Auth::user()->role, ['admin', 'manager', 'editor'])) {
+            abort(403, 'Access denied. Editor only.');
+        }
     }
 
     public function index()

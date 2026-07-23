@@ -11,36 +11,18 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-   
-    public function __construct()
-    {
-        // Ensure user is authenticated
-        $this->middleware('auth');
-        
-        // Only Admin can access User Management
-        $this->middleware(function ($request, $next) {
-            if (!Auth::check() || Auth::user()->role !== 'admin') {
-                abort(403, 'Access denied. Only administrators can manage users.');
-            }
-            return $next($request);
-        });
-    }
 
-  
     public function index()
     {
         $users = User::orderBy('created_at', 'desc')->paginate(10);
-        
         return view('admin.users.index', compact('users'));
     }
 
-   
     public function create()
     {
         return view('admin.users.create');
     }
 
-   
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -69,23 +51,19 @@ class UserController extends Controller
         return back()->with('error', 'Failed to create user. Please try again.');
     }
 
-   
     public function show(User $user)
     {
         return view('admin.users.show', compact('user'));
     }
 
-   
     public function edit(User $user)
     {
-        // editing (optional)
         if ($user->id === 1 && Auth::user()->id !== 1) {
             return back()->with('error', 'You cannot edit the master admin account.');
         }
 
         return view('admin.users.edit', compact('user'));
     }
-
 
     public function update(Request $request, User $user)
     {
@@ -96,6 +74,7 @@ class UserController extends Controller
             'is_active' => 'sometimes|boolean',
         ]);
 
+        // Prevent changing own role
         if ($user->id === Auth::id() && $validated['role'] !== Auth::user()->role) {
             return back()->with('error', 'You cannot change your own role.');
         }
@@ -122,10 +101,12 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Prevent deleting yourself
         if ($user->id === Auth::id()) {
             return back()->with('error', 'You cannot delete your own account.');
         }
 
+        // Prevent deleting master admin
         if ($user->id === 1) {
             return back()->with('error', 'You cannot delete the master admin account.');
         }
@@ -136,5 +117,27 @@ class UserController extends Controller
             ->with('success', 'User deleted successfully!');
     }
 
-    
+    public function activate(User $user)
+    {
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'You cannot activate yourself.');
+        }
+
+        $user->update(['is_active' => true]);
+        return back()->with('success', 'User activated successfully!');
+    }
+
+    public function deactivate(User $user)
+    {
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'You cannot deactivate yourself.');
+        }
+
+        if ($user->id === 1) {
+            return back()->with('error', 'You cannot deactivate the master admin.');
+        }
+
+        $user->update(['is_active' => false]);
+        return back()->with('success', 'User deactivated successfully!');
+    }
 }

@@ -9,7 +9,6 @@ use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
-// Welcome page (Public)
 Route::get('/', function () {
     return view('welcome');
 });
@@ -19,10 +18,6 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// ============================================
-// PROTECTED ROUTES WITH ROLE CHECKS
-// ============================================
-
 // Admin Routes - ONLY Admin can access
 Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -30,9 +25,12 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
 });
 
 // Manager Routes - Admin and Manager can access
-Route::middleware(['auth', RoleMiddleware::class . ':admin,manager'])->prefix('manager')->name('manager.')->group(function () {
-    Route::get('/dashboard', [ManagerDashboardController::class, 'index'])->name('dashboard');
-});
+Route::middleware(['auth', RoleMiddleware::class . ':admin,manager'])
+    ->prefix('manager')
+    ->name('manager.')
+    ->group(function () {
+        Route::get('/dashboard', [ManagerDashboardController::class, 'index'])->name('dashboard');
+    });
 
 // Editor Routes - Admin, Manager, Editor can access
 Route::middleware(['auth', RoleMiddleware::class . ':admin,manager,editor'])->prefix('editor')->name('editor.')->group(function () {
@@ -46,3 +44,16 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
         return view('user.profile');
     })->name('profile');
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
